@@ -1,5 +1,0 @@
-Already on 'master'
-error: patch failed: src/audiosource/ay/chipplayer.cpp:1
-error: src/audiosource/ay/chipplayer.cpp: patch does not apply
-error: patch failed: src/audiosource/ay/sndbuffer.cpp:1
-error: src/audiosource/ay/sndbuffer.cpp: patch does not apply

@@ -1,7 +1,0 @@
-/home/pi/door_trigger/target/debug/build/soloud-sys-0fce0320d49e0af3/out/build/CMakeFiles/install/strip.dir
-/home/pi/door_trigger/target/debug/build/soloud-sys-0fce0320d49e0af3/out/build/CMakeFiles/edit_cache.dir
-/home/pi/door_trigger/target/debug/build/soloud-sys-0fce0320d49e0af3/out/build/CMakeFiles/soloud.dir
-/home/pi/door_trigger/target/debug/build/soloud-sys-0fce0320d49e0af3/out/build/CMakeFiles/rebuild_cache.dir
-/home/pi/door_trigger/target/debug/build/soloud-sys-0fce0320d49e0af3/out/build/CMakeFiles/list_install_components.dir
-/home/pi/door_trigger/target/debug/build/soloud-sys-0fce0320d49e0af3/out/build/CMakeFiles/install.dir
-/home/pi/door_trigger/target/debug/build/soloud-sys-0fce0320d49e0af3/out/build/CMakeFiles/install/local.dir
