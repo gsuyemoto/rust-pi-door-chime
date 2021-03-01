@@ -1,0 +1,20 @@
+Already on 'master'
+CMake Warning:
+  Manually-specified variables were not used by the project:
+
+    CMAKE_ASM_COMPILER
+    CMAKE_ASM_FLAGS
+
+
+/home/pi/.cargo/git/checkouts/soloud-rs-dd50c5b67c65349d/0339928/soloud-sys/sys/soloud/src/audiosource/ay/soloud_ay.cpp:144:26: warning: multi-character character constant [-Wmultichar]
+   if (aFile->read32() != 'PIHC') return FILE_LOAD_FAILED; // CHIP
+                          ^~~~~~
+/home/pi/.cargo/git/checkouts/soloud-rs-dd50c5b67c65349d/0339928/soloud-sys/sys/soloud/src/audiosource/ay/soloud_ay.cpp:145:26: warning: multi-character character constant [-Wmultichar]
+   if (aFile->read32() != 'ENUT') return FILE_LOAD_FAILED; // TUNE
+                          ^~~~~~
+/home/pi/.cargo/git/checkouts/soloud-rs-dd50c5b67c65349d/0339928/soloud-sys/sys/soloud/src/audiosource/tedsid/soloud_tedsid.cpp:183:26: warning: multi-character character constant [-Wmultichar]
+   if (aFile->read32() != 'PIHC') return FILE_LOAD_FAILED; // CHIP
+                          ^~~~~~
+/home/pi/.cargo/git/checkouts/soloud-rs-dd50c5b67c65349d/0339928/soloud-sys/sys/soloud/src/audiosource/tedsid/soloud_tedsid.cpp:184:26: warning: multi-character character constant [-Wmultichar]
+   if (aFile->read32() != 'ENUT') return FILE_LOAD_FAILED; // TUNE
+                          ^~~~~~
