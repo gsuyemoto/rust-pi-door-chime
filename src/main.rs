@@ -3,44 +3,59 @@ use soloud::*;
 
 fn main() {
 	let mut play_once	= true;
-	let door 	= InputDevice::new(23);
-	let mut led 	= LED::new(25);
-	led.off();
+	let mag 		    = InputDevice::new(23);
+	let pir 		    = InputDevice::new(24);
+	let mut mag_led 	= LED::new(25);
+	let mut pir_led 	= LED::new(18);
 	
-	let mut wav	= audio::Wav::default();
-	wav.load(&std::path::Path::new("/home/pi/door_trigger/sunmerry01.wav")).unwrap_or_else( |err| {
-		led.blink(2.0, 3.0);
+	pir_led.off();
+	mag_led.off();
+	
+	let mut enter = audio::Wav::default();
+	enter.load(&std::path::Path::new("/home/pi/workspace/rust-pi-door-chime/media/enter.wav")).unwrap_or_else( |err| {
+		mag_led.blink(2.0, 3.0);
 		println!("Unable to load .wav file: {:?}", err);
 		loop {}
 	});
 
-	let sl 		= Soloud::default().unwrap_or_else( |err| {
-		led.blink(2.0, 3.0);
+	let mut exit = audio::Wav::default();
+	exit.load(&std::path::Path::new("/home/pi/workspace/rust-pi-door-chime/media/exit.wav")).unwrap_or_else( |err| {
+		mag_led.blink(2.0, 3.0);
+		println!("Unable to load .wav file: {:?}", err);
+		loop {}
+	});
+
+	let sl = Soloud::default().unwrap_or_else( |err| {
+		mag_led.blink(2.0, 3.0);
 		println!("Unable to create soloud: {:?}", err);
 		loop {}
 	});
 
-	// let mut speech	= audio::Speech::default();
-
-	// speech.set_text("Welcome to Sunmerry!")?;
-
 	loop {
-		if door.is_active() && play_once {
-			println!("playing sound");
+		if mag.is_active() && !pir.is_active() && play_once {
+			println!("entering");
 			play_once = false;
-			led.on();
-			sl.play(&wav);
-
-			// sl.play(&speech);
-			// while sl.active_voice_count() > 0 {	
+			mag_led.on();
+			sl.play(&enter);
 
 			while sl.voice_count() > 0 {	
 				std::thread::sleep(std::time::Duration::from_millis(100));
 			}
-		} else if !door.is_active() && !play_once {
+		} else if mag.is_active() && pir.is_active() && play_once {
+			println!("exiting");
+			play_once = false;
+			mag_led.on();
+            pir_led.on();
+			sl.play(&exit);
+
+			while sl.voice_count() > 0 {	
+				std::thread::sleep(std::time::Duration::from_millis(100));
+			}
+		} else if !mag.is_active() && !play_once {
 			println!("resetting sound");
 			play_once = true;
-			led.off();
+			mag_led.off();
+            pir_led.off();
 		}
 	}
 }
