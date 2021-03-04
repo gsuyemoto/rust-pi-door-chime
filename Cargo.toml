@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 rust_gpiozero = "0.2.0"
 soloud = { git = "https://github.com/moalyousef/soloud-rs", default-features = false, features = ["alsa"] }
+glob = "0.3.0"
+fastrand = "1.4.0"
