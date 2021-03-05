@@ -43,7 +43,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 	let mut last_state  = State::DoorClosed;
 	
     let mag 		    = InputDevice::new(23);
-	let pir 		    = InputDevice::new(24);
+	let pir 		    = InputDevice::new(12);
 	let mag_led 	    = LED::new(25);
 	let pir_led 	    = LED::new(18);
 
