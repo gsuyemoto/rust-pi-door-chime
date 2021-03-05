@@ -1,10 +1,8 @@
 use std::error::Error;
 use std::vec::Vec;
-use std::path::Path;
 use rust_gpiozero::*;
 use soloud::*;
 use glob::glob;
-use fastrand::*;
 
 #[derive(Clone, Copy, Debug)]
 enum State {
@@ -22,16 +20,21 @@ fn get_state(mag_state: bool, pir_state: bool) -> State {
     }
 }
 
-fn get_sound_files(list_snds: &mut Vec<Wav>, search: &str) {
-    let files_path = format!("/home/pi/workspace/rust-pi-door-chime/media/*{}*.wav", search);
-    
-    for entry in glob(&files_path).expect("Failed to read glob pattern") {
+struct Sound( Option<Wav>, Option<Speech>);
+
+fn get_sound_files(list_snds: &mut Vec<Sound>, search: &str) {
+    let files_path      = format!("/mnt/usbdrive/media/*{}*.wav", search);
+    let all_files       = glob(&files_path).expect("Failed to read files");  
+ 
+    if all_files.size_hint().1.is_none() { return; } 
+
+    for entry in all_files {
         match entry {
             Ok(path_buf)    => { 
                 let mut new_sound = Wav::default();
-                new_sound.load(&path_buf.as_path());
+                new_sound.load(&path_buf.as_path()).expect("Unable to load a sound file");
 
-                list_snds.push(new_sound); 
+                list_snds.push(Sound(Some(new_sound), None)); 
                 println!("File: {:?}", path_buf.display()); 
             },
             Err(e)      => println!("Error: {:?}", e),
@@ -47,11 +50,23 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 	let mag_led 	    = LED::new(25);
 	let pir_led 	    = LED::new(18);
 
-    let mut snds_enter  = Vec::new();
-    let mut snds_exit   = Vec::new();       	
+    let mut snds_enter: Vec<Sound>  = Vec::new();
+    let mut snds_exit: Vec<Sound>   = Vec::new();       	
 
     get_sound_files(&mut snds_enter, "enter");
     get_sound_files(&mut snds_exit, "exit");
+
+    if snds_enter.len() == 0 {
+        let mut speech = Speech::default();
+        speech.set_text("You're entering Sunmerry!")?;
+        snds_enter.push(Sound(None, Some(speech)));
+    }
+
+    if snds_exit.len() == 0 {
+        let mut speech = Speech::default();
+        speech.set_text("Have a great day!")?;
+        snds_exit.push(Sound(None, Some(speech)));
+    }
 
 	pir_led.off();
 	mag_led.off();
@@ -65,8 +80,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         match (current_state, last_state) {
             (State::DoorOpenEntering, State::DoorClosed) => {
-                // println!("entering");
-                sl.play(&snds_enter[random_enter]);
+                println!("entering");
+                match &snds_enter[random_enter].0 {
+                    Some(sound)     => sl.play(sound),
+                    None            => sl.play(snds_enter[random_enter].1.as_ref().unwrap()),
+                };
+                
                 mag_led.on();
 
 			    while sl.voice_count() > 0 {	
@@ -74,8 +93,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 			    }
             },
             (State::DoorOpenExiting, State::DoorClosed) => {
-                // println!("exiting");
-                sl.play(&snds_exit[random_exit]);
+                println!("exiting: {:?} : {:?}", current_state, last_state);
+                match &snds_exit[random_exit].0 {
+                    Some(sound)     => sl.play(sound),
+                    None            => sl.play(snds_exit[random_exit].1.as_ref().unwrap()),
+                };
+
                 mag_led.on();
                 pir_led.on();
 			    
