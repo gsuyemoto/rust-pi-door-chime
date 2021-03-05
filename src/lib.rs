@@ -63,10 +63,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         let random_enter    = fastrand::usize(..snds_enter.len());
         let random_exit     = fastrand::usize(..snds_exit.len());
 
-        println!("last state: {:?}", last_state);
         match (current_state, last_state) {
             (State::DoorOpenEntering, State::DoorClosed) => {
-                println!("entering");
+                // println!("entering");
                 sl.play(&snds_enter[random_enter]);
                 mag_led.on();
 
@@ -75,7 +74,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 			    }
             },
             (State::DoorOpenExiting, State::DoorClosed) => {
-                println!("exiting");
+                // println!("exiting");
                 sl.play(&snds_exit[random_exit]);
                 mag_led.on();
                 pir_led.on();
@@ -85,11 +84,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 			    }
             },
             (State::DoorClosed, _) => {
-                println!("reset");
+                // println!("reset");
                 mag_led.off();
                 pir_led.off();
             },
-            _ => println!("door never closed, do nothing"),
+            _ => continue,
         }
 
         last_state = current_state;
