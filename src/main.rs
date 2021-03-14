@@ -1,10 +1,8 @@
 use std::process;
-use door_trigger::run;
 
 fn main() {
-    if let Err(e) = run() {
+    if let Err(e) = door_trigger::run() {
         println!("Application error: {}", e);
-
         process::exit(1);
     }
 }
