@@ -84,12 +84,12 @@ fn get_sound_files(list_snds: &mut Vec<Sound>, search: &str) {
 pub fn run() -> Result<(), Box<dyn Error>> {
 	let mut last_state  = State::DoorClosed;
 	
-    let mut trig        = OutputDevice::new(18);
-    let echo            = InputDevice::new(24);
+    let mut trig        = OutputDevice::new(5);
+    let echo            = InputDevice::new(6);
     let mag 		    = InputDevice::new(23);
 
 	let mag_led 	    = LED::new(25);
-	let pir_led 	    = LED::new(17);
+	let ppl_led 	    = LED::new(18);
 
     let mut snds_enter: Vec<Sound>  = Vec::new();
     let mut snds_exit: Vec<Sound>   = Vec::new();       	
@@ -109,12 +109,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         snds_exit.push(Sound(None, Some(speech)));
     }
     
-    pir_led.on();
+    ppl_led.on();
     mag_led.on();
     
 	sleep(Duration::from_secs(1));
 
-	pir_led.off();
+	ppl_led.off();
 	mag_led.off();
 	
 	let sl = Soloud::default().expect("Unable to create Soloud");
@@ -146,7 +146,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 };
 
                 mag_led.on();
-                pir_led.on();
+                ppl_led.on();
 			    
                 while sl.voice_count() > 0 {	
 			    	sleep(Duration::from_millis(100));
@@ -155,7 +155,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             (State::DoorClosed, _) => {
                 // println!("door closed");
                 mag_led.off();
-                pir_led.off();
+                ppl_led.off();
             },
             _ => continue,
         }
