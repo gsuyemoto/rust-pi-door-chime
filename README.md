@@ -1,5 +1,5 @@
 # rust-pi-door-chime
-A door chime that will play a custom sound file or text-to-speech when a door is opened (magnetic contact sensor). This is a Rust rewrite of the [project](https://learn.adafruit.com/sitcom-sfx-door-trigger/code) posted on Adafruit.
+A door chime that will play a custom sound file or text-to-speech when a door is opened (magnetic contact sensor). An early version of this application was a Rust rewrite of the [project](https://learn.adafruit.com/sitcom-sfx-door-trigger/code) posted on Adafruit. Later I decided to change out the PIR with an ultrasonic sensor and used this [project](https://tutorials-raspberrypi.com/raspberry-pi-ultrasonic-sensor-hc-sr04/) as a guide for the wiring and resistors.
 
 
 This application uses the following Cargo packages:
