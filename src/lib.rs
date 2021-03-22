@@ -1,10 +1,15 @@
-use std::env;
-use std::fs;
-use std::error::Error;
-use std::vec::Vec;
-use std::thread::sleep;
-use std::time::Duration;
-use std::time::Instant;
+use std::
+{
+    env,
+    fs,
+    error::Error,
+    thread::sleep,
+    time::Duration,
+    time::Instant,
+    thread,
+    sync::mpsc,
+};
+
 use rust_gpiozero::*;
 use soloud::*;
 use glob::glob;
@@ -82,43 +87,75 @@ fn get_state(mag_state: bool, person_detected: bool) -> State {
     }
 }
 
-fn detect_person(dist: u128, trig: &mut OutputDevice, echo: &InputDevice) -> bool {
-    // send sonic
-    trig.on();
-    sleep(Duration::from_micros(10));
-    trig.off();
-    
-    // measure
-    let check_fail      = Instant::now();
-    let mut did_fail    = false;
-    while !echo.is_active() { 
-        if check_fail.elapsed().as_micros() > 17000 {
-            did_fail = true;
-            break; 
-        }                
-    }
-    
-    if did_fail {
-        println!("Failed...");
-        sleep(Duration::from_millis(60));
-        return false
-    }
-    
-    let time_start      = Instant::now();
-    
-    while echo.is_active() {}
-    let time_elapsed    = time_start.elapsed().as_micros();
-    println!("Time elapsed: {:?}", time_elapsed);
-    
-    let distance        = time_elapsed / 148;
-    println!("Distance: {:?}", distance);
-    
-    // wait 60 ms between measurements
-    sleep(Duration::from_millis(60));
-    
-    if distance < dist { return true }
-    else { return false }
+fn median(mut readings: Vec<u128>) -> u128 {
+    readings.sort();
+    let mid = readings.len() /2;
+    readings[mid]
 }
+
+struct DetectPerson {
+    worker:             Option<thread::JoinHandle<()>>,
+    person_detected:    bool,
+}
+
+impl DetectPerson {
+    fn new(min_distance: u128, pin_out: OutputDevice, pin_in: InputDevice, sender: mpsc::Sender<bool>) -> DetectPerson {
+        let mut last_ten: Vec<u128> = Vec::with_capacity(10);
+
+        let worker = thread::spawn(move || loop {
+            let distance = Self::get_sensor_readings(pin_out, pin_in);
+            last_ten.push(distance);
+
+            if last_ten.len() == 10 {
+                let median = median(last_ten.clone());
+                sender.send(median < min_distance);
+                last_ten.pop();
+                println!("median: {}", median);
+            }
+
+            // wait 60 ms between measurements
+            sleep(Duration::from_millis(60));
+        });
+
+        DetectPerson {
+            worker: Some(worker),
+            person_detected: false,
+        }
+    }
+
+    fn get_sensor_readings(pin_out:OutputDevice, pin_in: InputDevice) -> u128 {
+        // send sonic
+        pin_out.on();
+        sleep(Duration::from_micros(10));
+        pin_out.off();
+        
+        // measure
+        let check_fail      = Instant::now();
+        let mut did_fail    = false;
+        while !pin_in.is_active() { 
+            if check_fail.elapsed().as_micros() > 1700 {
+                did_fail = true;
+                break; 
+            }                
+        }
+        
+        if did_fail {
+            println!("Failed...");
+            sleep(Duration::from_millis(60));
+            return 0
+        }
+        
+        let time_start      = Instant::now();
+        
+        while pin_in.is_active() {}
+        let time_elapsed    = time_start.elapsed().as_micros();
+        let distance        = time_elapsed / 148; // for inches
+        // println!("Distance: {:?}", distance);
+        
+        distance        
+    }
+}
+
 
 struct Sound( Option<Wav>, Option<Speech>);
 
@@ -144,7 +181,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let config          = Config::new();
 	let mut last_state  = State::DoorClosed;
 	
-    let mut trig        = OutputDevice::new(5);
+    let trig            = OutputDevice::new(5);
     let echo            = InputDevice::new(6);
     let mag 		    = InputDevice::new(23);
 
@@ -180,8 +217,20 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 	let mut sl = Soloud::default().expect("Unable to create Soloud");
     sl.set_global_volume(config.volume);
 
+    let (tx, rx)    = mpsc::channel(); 
+    let _           = DetectPerson::new(
+                        config.distance,
+                        trig,
+                        echo,
+                        tx );
+
 	loop {
-        let current_state   = get_state(mag.is_active(), detect_person(config.distance, &mut trig, &echo));
+        let person_was_detected = match rx.try_recv() {
+            Ok(msg)     => msg,
+            Err(_)      => false,
+        };
+
+        let current_state   = get_state(mag.is_active(), person_was_detected);
         let random_enter    = fastrand::usize(..snds_enter.len());
         let random_exit     = fastrand::usize(..snds_exit.len());
 
