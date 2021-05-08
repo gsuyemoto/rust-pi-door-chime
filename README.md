@@ -19,3 +19,7 @@ If you have problems playing the sound you might need to change the default soun
 
 `defaults.pcm.!card 1`
 `defaults.pcm.!device 0`
+
+If you have problems when installing Soloud crate related to asoundlib.h missing then you probably need to install libasound2-dev:
+
+sudo apt-get install libasound2-dev
