@@ -23,6 +23,7 @@ const PIN_MAG: u8                   = 13;
 const PIN_LED: u8                   = 5;
 const WINNER_SOUND: &str            = "winner";
 const WINNER_NUM: u32               = 50;
+const TIME_MAX: u64                 = 120; // time since last door open
 
 pub struct Config {
     pub volume: f32,
@@ -80,6 +81,7 @@ struct Sounds {
     counter: u32,
     winner: Wav,
     loser: Wav,
+    time: Instant,
 }
 
 impl Sounds {
@@ -116,11 +118,24 @@ impl Sounds {
             counter: 0,
             winner: wav_win, 
             loser: wav_lose,
+            time: Instant::now(),
         }
     }
 
     fn play(&mut self) {
-        self.counter += 1;
+        // check amount of time since last play
+        // if over TIME_MAX then store just opened
+        // therefore need to set counter to new
+        // random counter to mix up contest
+        let time_max        = Duration::from_secs(TIME_MAX);
+
+        if self.time.elapsed() > time_max {
+            self.counter    = fastrand::u32(1..WINNER_NUM);
+            self.time       = Instant::now();
+        }
+        else {
+            self.counter    += 1;
+        }
 
         if self.counter == WINNER_NUM {
             println!("Found a winner!");
@@ -135,7 +150,6 @@ impl Sounds {
         }
 
         while self.player.active_voice_count() > 0 {
-            println!("Waiting for sound to end...");
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
     }
