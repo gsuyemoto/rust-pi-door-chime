@@ -10,7 +10,6 @@ use std::
     path::PathBuf,
 };
 
-<<<<<<< HEAD
 use std::io;
 use std::io::prelude::*;
 
@@ -31,24 +30,10 @@ const PIN_LED: u8                   = 5;
 const PIN_VUP: u8                   = 16;
 const PIN_VDOWN: u8                 = 26;
 
-=======
-use soloud::*;
-use rust_gpiozero::*;
-use glob::glob;
-
-const DEFAULT_VOLUME: f32           = 1.0;
-const FILE_CONFIG: &str             = "config.txt";
-const FILE_PATH: &str               = ""; 
-const FILE_SOUND_PATH: &str         = "/media"; 
-const FILE_SOUND_TYPE: &str         = ".wav"; 
-const PIN_MAG: u8                   = 13;
-const PIN_LED: u8                   = 5;
->>>>>>> 68fd1919d1ea1a835627c76cec15dd449cc25da9
 const WINNER_SOUND: &str            = "winner";
 const WINNER_NUM: u32               = 50;
 const TIME_MAX: u64                 = 120; // time since last door open
 
-<<<<<<< HEAD
 const BTN_TYPE_NOTHING: u8          = 0;
 const BTN_TYPE_PLAY: u8             = 1;
 const BTN_TYPE_VUP: u8              = 2;
@@ -56,8 +41,6 @@ const BTN_TYPE_VDOWN: u8            = 3;
 
 static BTN_PRESSED: AtomicU8 = AtomicU8::new(BTN_TYPE_NOTHING);
 
-=======
->>>>>>> 68fd1919d1ea1a835627c76cec15dd449cc25da9
 pub struct Config {
     pub volume: f32,
 }
@@ -93,25 +76,6 @@ impl Config {
     }
 }
 
-<<<<<<< HEAD
-=======
-#[derive(Clone, Copy, Debug)]
-enum State {
-    DoorOpenEntering,
-    DoorOpenExiting,
-    DoorClosed,
-}
-
-fn get_state(mag_state: bool, person_detected: bool) -> State {
-    match (mag_state, person_detected) {
-        (true, true)    => State::DoorOpenExiting,
-        (true, false)   => State::DoorOpenEntering,
-        (false, false)  => State::DoorClosed,
-        (false, true)   => State::DoorClosed,
-    }
-}
-
->>>>>>> 68fd1919d1ea1a835627c76cec15dd449cc25da9
 struct Sounds {
     player: Soloud,
     counter: u32,
@@ -189,7 +153,6 @@ impl Sounds {
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
     }
-<<<<<<< HEAD
 
     fn volume_up(&mut self) {
         let current_volume = self.player.global_volume();
@@ -221,22 +184,15 @@ fn watch_btn_vdown() {
     let mut button = Button::new(PIN_VDOWN);
     button.wait_for_press(None);
     BTN_PRESSED.store(BTN_TYPE_VDOWN, Ordering::Relaxed);
-=======
->>>>>>> 68fd1919d1ea1a835627c76cec15dd449cc25da9
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let config          = Config::new();
-<<<<<<< HEAD
 	let mut last_state  = false;
-=======
-	let mut last_state  = State::DoorClosed;
->>>>>>> 68fd1919d1ea1a835627c76cec15dd449cc25da9
     let mag 		    = InputDevice::new(PIN_MAG);
 	let mag_led 	    = LED::new(PIN_LED);
     let mut sounds      = Sounds::new(config.volume);
 
-<<<<<<< HEAD
     std::thread::spawn(watch_btn_play);
     std::thread::spawn(watch_btn_vup);
     std::thread::spawn(watch_btn_vdown);
@@ -266,31 +222,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 
                 sounds.play();    
             },
-=======
-    mag_led.on();
-	sleep(Duration::from_secs(1));
-	mag_led.off();
-	
-	loop {
-        let current_state   = get_state(mag.is_active(), false);
-
-        match (current_state, last_state) {
-            (State::DoorOpenEntering, State::DoorClosed) => {
-                println!("{:?}", current_state);
-                
-                mag_led.on();
-                sounds.play();    
-            },
-            (State::DoorOpenExiting, State::DoorClosed) => {
-                println!("{:?}", current_state);
-                
-                mag_led.on();
-                sounds.play();
-            },
-            (State::DoorClosed, _) => {
-                mag_led.off();
-            },
->>>>>>> 68fd1919d1ea1a835627c76cec15dd449cc25da9
             _ => continue,
         }
 

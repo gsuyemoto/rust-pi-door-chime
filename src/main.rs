@@ -6,7 +6,6 @@ fn main() {
         process::exit(1);
     }
 }
-<<<<<<< HEAD
 
 /*
 use soloud::*;
@@ -35,5 +34,3 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 */
-=======
->>>>>>> 68fd1919d1ea1a835627c76cec15dd449cc25da9
