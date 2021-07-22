@@ -24,22 +24,15 @@ const FILE_PATH: &str               = "";
 const FILE_SOUND_PATH: &str         = "/home/pi/media"; 
 const FILE_SOUND_TYPE: &str         = ".wav"; 
 
-const PIN_PLAY: u8                  = 6;
 const PIN_MAG: u8                   = 13;
 const PIN_LED: u8                   = 5;
+const PIN_PLAY: u8                  = 6;
 const PIN_VUP: u8                   = 16;
 const PIN_VDOWN: u8                 = 26;
 
 const WINNER_SOUND: &str            = "winner";
 const WINNER_NUM: u32               = 50;
 const TIME_MAX: u64                 = 120; // time since last door open
-
-const BTN_TYPE_NOTHING: u8          = 0;
-const BTN_TYPE_PLAY: u8             = 1;
-const BTN_TYPE_VUP: u8              = 2;
-const BTN_TYPE_VDOWN: u8            = 3;
-
-static BTN_PRESSED: AtomicU8 = AtomicU8::new(BTN_TYPE_NOTHING);
 
 pub struct Config {
     pub volume: f32,
@@ -157,73 +150,35 @@ impl Sounds {
     fn volume_up(&mut self) {
         let current_volume = self.player.global_volume();
         self.player.set_global_volume(current_volume + 0.1);
+        println!("New volume: {}", self.player.global_volume());
     }
 
     fn volume_down(&mut self) {
         let current_volume = self.player.global_volume();
         self.player.set_global_volume(current_volume - 0.1);
+        println!("New volume: {}", self.player.global_volume());
     }
-}
-
-fn watch_btn_play() {
-    // wait for key press to play music file manually
-    let mut button = Button::new(PIN_PLAY);
-    button.wait_for_press(None);
-    BTN_PRESSED.store(BTN_TYPE_PLAY, Ordering::Relaxed);
-}
-
-fn watch_btn_vup() {
-    // wait for key press to play music file manually
-    let mut button = Button::new(PIN_VUP);
-    button.wait_for_press(None);
-    BTN_PRESSED.store(BTN_TYPE_VUP, Ordering::Relaxed);
-}
-
-fn watch_btn_vdown() {
-    // wait for key press to play music file manually
-    let mut button = Button::new(PIN_VDOWN);
-    button.wait_for_press(None);
-    BTN_PRESSED.store(BTN_TYPE_VDOWN, Ordering::Relaxed);
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let config          = Config::new();
+    let mut sounds      = Sounds::new(config.volume);
 	let mut last_state  = false;
     let mag 		    = InputDevice::new(PIN_MAG);
 	let mag_led 	    = LED::new(PIN_LED);
-    let mut sounds      = Sounds::new(config.volume);
 
-    std::thread::spawn(watch_btn_play);
-    std::thread::spawn(watch_btn_vup);
-    std::thread::spawn(watch_btn_vdown);
-	
+    let btn_play        = Button::new(PIN_PLAY);
+    let btn_vup         = Button::new(PIN_VUP);
+    let btn_vdown       = Button::new(PIN_VDOWN);
+
     println!("Starting loop...");
 	loop {
-        match BTN_PRESSED.load(Ordering::Relaxed) {
-            BTN_TYPE_PLAY   =>  {
-                                   sounds.play();
-                                   BTN_PRESSED.store(BTN_TYPE_NOTHING, Ordering::Relaxed);
-                                },
-            BTN_TYPE_VUP    =>  {
-                                   sounds.volume_up();
-                                   BTN_PRESSED.store(BTN_TYPE_NOTHING, Ordering::Relaxed);
-                                },
-            BTN_TYPE_VDOWN  =>  {
-                                   sounds.volume_down();
-                                   BTN_PRESSED.store(BTN_TYPE_NOTHING, Ordering::Relaxed);
-                                },
-            _               =>  (),                    
-        }
-
         let current_state = mag.is_active();
-        match (current_state, last_state) {
-            (true, false) => {
-                println!("Door opened");
-                
-                sounds.play();    
-            },
-            _ => continue,
-        }
+
+        if btn_play.is_active()             { sounds.play(); } 
+        if btn_vup.is_active()              { sounds.volume_up(); }
+        if btn_vdown.is_active()            { sounds.volume_down(); }
+        if current_state && !last_state     { sounds.play(); }
 
         last_state = current_state;
         sleep(Duration::from_secs(3));
